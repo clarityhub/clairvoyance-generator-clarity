@@ -1,0 +1,30 @@
+{
+  "name": "generator-clarity",
+  "version": "0.0.1",
+  "description": "Clarity Hub generators for creating services and other useful templates",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "test": "mocha ./tests/*.js"
+  },
+  "author": {
+    "name": "Ivan Montiel"
+  },
+  "files": [
+    "generators"
+  ],
+  "main": "generators/service/index.js",
+  "keywords": [
+    "yeoman-generator",
+    "clarity-hub"
+  ],
+  "dependencies": {
+    "glob": "^7.1.2",
+    "yeoman-generator": "^2.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "yeoman-assert": "^3.1.0",
+    "yeoman-test": "^1.7.0"
+  }
+}

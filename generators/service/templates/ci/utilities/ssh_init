@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Run ssh-agent (inside the build environment)
+eval $(ssh-agent -s)
+
+mkdir -p ~/.ssh
+
+echo "
+Host gitlab.com
+        PubkeyAcceptedKeyTypes +ssh-rsa
+        HostName gitlab.com
+        IdentityFile ~/.ssh/gitlab
+        User git
+" >> ~/.ssh/config
+
+echo "$SSH_SERVER_HOSTKEY" >> ~/.ssh/known_hosts
+
+echo "$SSH_PRIVATE_KEY" > ~/.ssh/gitlab
+chmod 400 ~/.ssh/gitlab
+
+# Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+ssh-add ~/.ssh/gitlab

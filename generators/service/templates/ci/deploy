@@ -1,0 +1,76 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+
+set -e
+
+# Set up
+aws s3api get-object --bucket ci.clarityhub.io \
+  --key outputs/terraform-$environment.output \
+  ../vars.output
+export $(cat ../vars.output | sed -e 's/ = /=/g')
+
+cd ..
+echo "$JWT_PUBLIC" > "./jwt-secret.pem"
+echo "$AWS_KEY_PAIR" > "./awskeypair.pem"
+chmod 400 ./awskeypair.pem
+
+echo "Deploying to $service_<%= serviceName %>"
+
+# Deploy
+sync () {
+  rsync -ravve "ssh -o StrictHostKeyChecking=no -i ./awskeypair.pem" \
+    $1 ec2-user@$service_<%= serviceName %>:~/service-<%= serviceName %> \
+    --delete \
+    --delete-after
+}
+
+run () {
+  ssh -o StrictHostKeyChecking=no -i ./awskeypair.pem ec2-user@$service_<%= serviceName %> $1
+}
+
+sync migrations
+sync src
+sync node_modules
+sync .sequelizerc
+sync jwt-secret.pem
+sync package.json
+sync yarn.lock
+
+# TODO read the settings.example.file and do replacements
+# TODO the database and key should come from vars
+read -r -d '***' SETTINGS << EOM
+{
+  "production": {
+    "port": "3000",
+    "key": "jwt-secret.pem",
+    "database": {
+      "username": "claire_app",
+      "password": "claire_app",
+      "database": "clairvoyance_<%= serviceName %>",
+      "host": "$postgres_host",
+      "dialect": "postgres"
+    },
+    "pubsub": {
+      "host": "$rabbitmq_host",
+      "username": "claire",
+      "password": "claire",
+      "port": "5672"
+    },
+    "redis": {
+      "host": "$redis_host",
+      "port": "6379"
+    }
+  }
+}
+***
+EOM
+
+## Copy over the settings
+echo "$SETTINGS" | ssh -i ./awskeypair.pem ec2-user@$service_<%= serviceName %> "cat > ~/service-<%= serviceNameDashed %>/settings.json"
+
+# run migrations and run
+run "npm install forever -g"
+run "cd ~/service-<%= serviceNameDashed %> && yarn install --production"
+run "cd ~/service-<%= serviceNameDashed %> && NODE_ENV=production yarn run migrate:up"
+run "cd ~/service-<%= serviceNameDashed %> && NODE_ENV=production forever restart src/index.js || NODE_ENV=production forever start src/index.js &"

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+export SERVICE=$(docker ps --filter="name=clairvoyance_service_<%= serviceName %>" -q | xargs)
+
+docker exec $SERVICE sh -c "cd /app/service-<%= serviceNameDashed %>; yarn run migrate:up:test"
+docker exec $SERVICE sh -c "cd /app/service-<%= serviceNameDashed %>; yarn run test:integration:once"

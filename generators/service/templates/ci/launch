@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+
+set -e
+
+docker-compose --file="../docker-compose.yml" build && \
+  docker-compose --file="../docker-compose.yml" up -d
+
+export SERVICE=$(docker ps --filter="name=clairvoyance_service_<%= serviceName %>" -q | xargs)
+
+docker exec $SERVICE yarn config set cache-folder /app/.yarn-cache
+docker exec $SERVICE touch jwt-secret.pem
+
+sleep 5

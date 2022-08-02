@@ -1,0 +1,44 @@
+{
+  "development": {
+    "port": "3000",
+    "key": "jwt-secret.pem",
+    "database": {
+      "username": "postgres",
+      "password": "postgres",
+      "database": "clairvoyance_<%= integrationName %>_development",
+      "host": "postgres",
+      "dialect": "postgres"
+    },
+    "token": "XXX",
+    "clientId": "XXX",
+    "clientSecret": "XXX"
+  },
+  "test": {
+    "port": "3001",
+    "key": "jwt-secret.pem",
+    "database": {
+      "username": "postgres",
+      "password": "postgres",
+      "database": "clairvoyance_<%= integrationName %>_test",
+      "host": "postgres",
+      "dialect": "postgres"
+    },
+    "token": "XXX",
+    "clientId": "XXX",
+    "clientSecret": "XXX"
+  },
+  "production": {
+    "port": "3000",
+    "key": "jwt-secret.pem",
+    "database": {
+      "username": "postgres",
+      "password": "postgres",
+      "database": "clairvoyance_<%= integrationName %>_production",
+      "host": "postgres",
+      "dialect": "postgres"
+    },
+    "token": "XXX",
+    "clientId": "XXX",
+    "clientSecret": "XXX"
+  }
+}

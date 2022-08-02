@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ENVIRONMENT=$(echo $environment | awk '{print toupper($0)}')
+
+temp=JWT_PUBLIC_${ENVIRONMENT}
+export JWT_PUBLIC="${!temp}"

@@ -1,0 +1,69 @@
+image: registry.gitlab.com/clairvoyance/app/service:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+
+stages:
+  - test
+  - deploy
+
+cache:
+  paths:
+    - .yarn-cache
+    - node_modules
+
+lint:
+  stage: test
+  before_script:
+    - bash ./ci/utilities/ssh_init
+    - yarn config set cache-folder .yarn-cache
+    - yarn install --no-progress --pure-lockfile
+  script:
+    - yarn run lint -- --quiet
+
+test:
+  stage: test
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - bash ./ci/utilities/ssh_init
+    - yarn config set cache-folder .yarn-cache
+    - yarn install --no-progress --pure-lockfile
+    - cp settings.example.json settings.json
+    - bash ./ci/launch
+  script:
+    - bash ./ci/test
+
+deploy-dev:
+  stage: deploy
+  only:
+    - master
+  variables:
+    environment: "dev"
+    URL_PREFIX: ".dev"
+  before_script:
+    - bash ./ci/utilities/ssh_init
+    - bash ./ci/utilities/credentials
+    - yarn config set cache-folder .yarn-cache
+    - yarn install --no-progress --pure-lockfile --production
+  script:
+    - source ./ci/utilities/vars
+    - bash ./ci/deploy
+
+deploy-prod:
+  stage: deploy
+  only:
+    - tags
+  variables:
+    environment: "prod"
+    URL_PREFIX: ""
+  before_script:
+    - bash ./ci/utilities/ssh_init
+    - bash ./ci/utilities/credentials
+    - yarn config set cache-folder .yarn-cache
+    - yarn install --no-progress --pure-lockfile --production
+  script:
+    - source ./ci/utilities/vars
+    - bash ./ci/deploy
